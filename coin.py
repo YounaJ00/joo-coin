@@ -43,4 +43,16 @@ response = client.chat.completions.create(
     "type": "json_object"
   },
 )
-print(response.choices[0].message.content)
+
+result = response.choices[0].message.content
+
+import json
+result = json.loads(result)
+
+# 로그인 기능 구현
+import pyupbit
+
+access = os.getenv('UPBIT_ACCESS_KEY')
+secret = os.getenv('UPBIT_SECRET_KEY')
+upbit = pyupbit.Upbit(access, secret)
+
