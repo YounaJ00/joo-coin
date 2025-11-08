@@ -46,6 +46,7 @@ response = client.chat.completions.create(
 
 result = response.choices[0].message.content
 
+
 import json
 result = json.loads(result)
 
@@ -55,4 +56,17 @@ import pyupbit
 access = os.getenv('UPBIT_ACCESS_KEY')
 secret = os.getenv('UPBIT_SECRET_KEY')
 upbit = pyupbit.Upbit(access, secret)
+
+
+# 전량 매수, 매도 로직(get_balance 가 잔고)
+if result['decision'] == "buy":
+  print(upbit.buy_market_order("KRW-BTC", upbit.get_balance("KRW")))
+  print(result["reason"])
+elif result['decision'] == "sell":
+  print(upbit.sell_market_order("KRW-BTC", upbit.get_balance("KRW-BTC")))
+  print(result["reason"])
+elif result['decision'] == "hold":
+  print(result["reason"])
+pass
+
 
