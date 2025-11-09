@@ -3,10 +3,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pyupbit
+from openai import OpenAI
+
 df = pyupbit.get_ohlcv("KRW-BTC", count = 30, interval = "day")
 
-from openai import OpenAI
+# 공통 설정
 client = OpenAI()
+coin_name = "KRW-BTC"
+fee_multiplier = 0.9995
+min_order_amount = 5000 
+
 
 response = client.chat.completions.create(
   model="gpt-4.1-nano",
@@ -57,14 +63,30 @@ access = os.getenv('UPBIT_ACCESS_KEY')
 secret = os.getenv('UPBIT_SECRET_KEY')
 upbit = pyupbit.Upbit(access, secret)
 
+my_money = upbit.get_balance("KRW")
+available_buy_amount = my_money * fee_multiplier
+my_coin = upbit.get_balance(coin_name)  # 보유 코인 조회
 
-# 전량 매수, 매도 로직(get_balance 가 잔고)
 if result['decision'] == "buy":
-  print(upbit.buy_market_order("KRW-BTC", upbit.get_balance("KRW")))
-  print(result["reason"])
+  if available_buy_amount > min_order_amount :
+    print(upbit.buy_market_order(coin_name, available_buy_amount))
+  else :
+    print(result["reason"])
+
 elif result['decision'] == "sell":
-  print(upbit.sell_market_order("KRW-BTC", upbit.get_balance("KRW-BTC")))
-  print(result["reason"])
+
+  # 현재 매도 호가 조회
+  orderbook = pyupbit.get_orderbook(ticker=coin_name)
+  current_price = orderbook['orderbook_units'][0]["ask_price"]
+  # 매도 시 수수료 제외 전 총 매도 금액  
+  gross = my_coin * current_price
+  available_sell_amount = gross * fee_multiplier
+
+  if available_sell_amount > min_order_amount :
+    print(upbit.sell_market_order(coin_name, my_coin))
+  else : 
+    print(result["reason"])
+
 elif result['decision'] == "hold":
   print(result["reason"])
 pass
