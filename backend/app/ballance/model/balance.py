@@ -18,6 +18,7 @@ class Balance(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
+    coin_amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )
