@@ -396,13 +396,30 @@ class TradeService:
 
         await self.balance_repository.create(balance)
 
-    async def get_transactions(self) -> TransactionsResponse:
+    async def get_transactions(
+        self, cursor: Optional[int] = None, limit: int = 20
+    ) -> TransactionsResponse:
         """
-        모든 거래 내역을 조회하여 반환
+        거래 내역을 커서 기반 페이지네이션으로 조회
 
-        @return: 거래 내역 목록 응답
+        @param cursor: 이전 페이지의 마지막 거래 ID (None이면 첫 페이지)
+        @param limit: 페이지당 조회할 항목 수 (기본: 20)
+        @return: 거래 내역 목록 응답 (다음 페이지 정보 포함)
         """
-        trades = await self.trade_repository.get_all_with_coin()
+        # limit + 1개를 조회하여 다음 페이지 존재 여부 확인
+        trades = await self.trade_repository.get_all_with_coin_paginated(
+            cursor=cursor, limit=limit + 1
+        )
+
+        # 다음 페이지 존재 여부 판단
+        has_next = len(trades) > limit
+
+        # 실제 반환할 항목은 limit개만
+        if has_next:
+            trades = trades[:limit]
+            next_cursor = trades[-1].id if trades else None
+        else:
+            next_cursor = None
 
         items = [
             TransactionItemResponse.from_trade(
@@ -411,4 +428,6 @@ class TradeService:
             for trade in trades
         ]
 
-        return TransactionsResponse(items=items)
+        return TransactionsResponse(
+            items=items, next_cursor=next_cursor, has_next=has_next
+        )

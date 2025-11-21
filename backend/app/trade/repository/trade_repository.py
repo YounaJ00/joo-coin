@@ -2,7 +2,7 @@
 Trade Repository
 """
 
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,4 +38,26 @@ class TradeRepository(BaseRepository[Trade]):
             .options(selectinload(Trade.coin))
             .order_by(Trade.created_at.desc())
         )
+        return list(result.scalars().all())
+
+    async def get_all_with_coin_paginated(
+        self, cursor: Optional[int], limit: int
+    ) -> List[Trade]:
+        """
+        거래 내역을 커서 기반 페이지네이션으로 조회
+
+        @param cursor: 이전 페이지의 마지막 거래 ID (None이면 첫 페이지)
+        @param limit: 조회할 최대 개수
+        @return: 생성 시각 기준 내림차순으로 정렬된 거래 내역 목록
+        """
+        query = select(Trade).options(selectinload(Trade.coin))
+
+        # cursor가 있으면 해당 ID보다 작은 항목만 조회
+        if cursor is not None:
+            query = query.where(Trade.id < cursor)
+
+        # created_at 기준 내림차순 정렬
+        query = query.order_by(Trade.created_at.desc()).limit(limit)
+
+        result = await self.session.execute(query)
         return list(result.scalars().all())

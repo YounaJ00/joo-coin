@@ -43,6 +43,10 @@ class TransactionItemResponse(BaseModel):
 
 
 class TransactionsResponse(BaseModel):
-    """거래 내역 목록 응답 DTO"""
+    """거래 내역 목록 응답 DTO (Cursor 기반 페이지네이션)"""
 
     items: list[TransactionItemResponse] = Field(description="거래 내역 목록")
+    next_cursor: Optional[int] = Field(
+        description="다음 페이지를 조회하기 위한 커서 (다음 페이지가 없으면 null)"
+    )
+    has_next: bool = Field(description="다음 페이지 존재 여부")
