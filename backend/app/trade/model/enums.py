@@ -15,6 +15,7 @@ class TradeType(str, Enum):
 class RiskLevel(str, Enum):
     """위험 수준"""
 
+    NONE = "none"
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
