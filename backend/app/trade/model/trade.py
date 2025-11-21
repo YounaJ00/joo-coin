@@ -10,7 +10,7 @@ from sqlalchemy import BigInteger, DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
-from app.database.models.enums import RiskLevel, TradeType
+from app.trade.model.enums import RiskLevel, TradeType
 
 
 class Trade(Base):

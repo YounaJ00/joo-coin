@@ -17,9 +17,9 @@ from app.configs.config import settings
 from app.database.base import Base
 
 # 모든 모델을 import하여 metadata에 등록
-from app.database.models.coin import Coin  # noqa: F401
-from app.database.models.trade import Trade  # noqa: F401
-from app.database.models.balance import Balance  # noqa: F401
+from app.coin.model.coin import Coin  # noqa: F401
+from app.trade.model.trade import Trade  # noqa: F401
+from app.ballance.model.balance import Balance  # noqa: F401
 
 config = context.config
 
