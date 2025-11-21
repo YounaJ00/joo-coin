@@ -6,7 +6,7 @@ API v1 라우터
 
 from fastapi import APIRouter
 
-from app.coin.controller.my_coin_controller import router as coin_router
+from app.coin.controller.my_coin_controller import coin_router
 from app.upbit.controller.upbit_controller import upbit_router
 
 # API 라우터 생성

@@ -7,10 +7,10 @@ from fastapi import APIRouter, Depends, status
 from app.coin.dto.coin_dto import CoinListResponse, CoinResponse, CreateCoinRequest
 from app.coin.service.coin_service import CoinService
 
-router = APIRouter(prefix="/my/coins", tags=["My Coin"])
+coin_router = APIRouter(prefix="/my/coins", tags=["My Coin"])
 
 
-@router.get(
+@coin_router.get(
     "",
     response_model=CoinListResponse,
     summary="내 거래 코인 조회",
@@ -24,7 +24,7 @@ async def get_my_coins(
     return CoinListResponse(items=[CoinResponse.model_validate(coin) for coin in coins])
 
 
-@router.post(
+@coin_router.post(
     "",
     status_code=status.HTTP_201_CREATED,
     summary="거래 코인 추가",
@@ -38,7 +38,7 @@ async def create_coin(
     await service.create_coin(request.name)
 
 
-@router.delete(
+@coin_router.delete(
     "/{coin_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="내 코인 정보 삭제",
