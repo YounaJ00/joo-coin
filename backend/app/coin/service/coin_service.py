@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.coin.model.coin import Coin
 from app.coin.repository.coin_repository import CoinRepository
 from app.common.model.base import get_session
-from app.trade.model.trade import Trade  # noqa: F401 - relationship 등록용
+from app.upbit.client.upbit_client import (
+    UpbitClient,  # noqa: F401 - relationship 등록용
+)
 
 
 class CoinService:
@@ -16,6 +18,7 @@ class CoinService:
 
     def __init__(self, session: AsyncSession = Depends(get_session)):
         self.repository = CoinRepository(session)
+        self.upbit_client = UpbitClient()
 
     async def get_all_active(self) -> list[Coin]:
         """삭제되지 않은 모든 코인 조회"""
@@ -58,6 +61,13 @@ class CoinService:
             HTTPException: 코인을 찾을 수 없는 경우
         """
         coin = await self.repository.get_by_id(coin_id)
+        amount = self.upbit_client.get_krw_balance(coin.name) or 0.0
+
+        if amount > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="잔고가 남아있는 코인은 삭제할 수 없습니다.",
+            )
 
         if not coin or coin.is_deleted:
             raise HTTPException(
