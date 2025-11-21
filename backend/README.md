@@ -197,7 +197,7 @@ async def get_bitcoin_trading_decision(df: pd.DataFrame) -> AiAnalysisResponse
 
 ### Base URL
 - 개발: `http://localhost:8000`
-- Swagger: `http://localhost:8000/docs`
+- Swagger: `http://localhost:8000/swagger-ui/index.html`
 
 ---
 
@@ -500,7 +500,7 @@ docker-compose up -d
 ### 접속 정보
 
 - **Backend API:** http://localhost:8000
-- **Swagger 문서:** http://localhost:8000/docs
+- **Swagger 문서:** http://localhost:8000/swagger-ui/index.html
 - **MySQL:** localhost:3306
 
 ---
