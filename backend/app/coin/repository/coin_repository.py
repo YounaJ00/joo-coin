@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.coin.model.coin import Coin
-from app.database.repositories.base_repository import BaseRepository
+from app.common.repository.base_repository import BaseRepository
 
 
 class CoinRepository(BaseRepository[Coin]):

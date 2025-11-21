@@ -7,8 +7,8 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.repository.base_repository import BaseRepository
 from app.trade.model.trade import Trade
-from app.database.repositories.base_repository import BaseRepository
 
 
 class TradeRepository(BaseRepository[Trade]):

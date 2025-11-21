@@ -9,7 +9,7 @@ from typing import Optional
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database.base import Base
+from app.common.model.base import Base
 from app.trade.model.enums import RiskLevel, TradeType
 
 
