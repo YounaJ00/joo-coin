@@ -1,12 +1,20 @@
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.common.api.v1.v1_router import v1_router
-from app.configs.config import settings
 from app.common.model.base import get_engine
+from app.configs.config import settings
+
+scheduler = AsyncIOScheduler()
+
+
+def hello_world_job() -> None:
+    """5초마다 실행되는 스케줄 작업"""
+    print("hello world")
 
 
 @asynccontextmanager
@@ -20,8 +28,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     engine = get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(lambda _: None)  # 연결 테스트
+
+    # 스케줄러 시작
+    scheduler.add_job(hello_world_job, "interval", seconds=300)
+    scheduler.start()
+
     yield
-    # 종료: 엔진 정리
+
+    # 종료: 스케줄러 및 엔진 정리
+    scheduler.shutdown()
     await engine.dispose()
 
 
