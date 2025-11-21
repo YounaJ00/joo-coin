@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class Decision(str, Enum):
     """AI 분석 결과 결정 유형"""
+
     BUY = "buy"
     SELL = "sell"
     HOLD = "hold"
@@ -13,6 +14,7 @@ class Decision(str, Enum):
 
 class RiskLevel(str, Enum):
     """리스크 수준"""
+
     NONE = "none"
     LOW = "low"
     MEDIUM = "medium"
@@ -21,6 +23,7 @@ class RiskLevel(str, Enum):
 
 class AiAnalysisResponse(BaseModel):
     """AI 비트코인 분석 결과 DTO"""
+
     decision: Decision = Field(description="투자 결정 (buy/sell/hold)")
     confidence: float = Field(ge=0, le=1, description="신뢰도 (0~1)")
     reason: str = Field(description="분석 근거")
