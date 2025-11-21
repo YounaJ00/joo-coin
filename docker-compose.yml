@@ -12,6 +12,40 @@ services:
       # - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - joo-coin
+    healthcheck:
+      test:
+        ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  joo-coin-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: joo-coin-backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/.venv # 가상환경은 컨테이너 내부 것 사용
+    depends_on:
+      joo-coin-db:
+        condition: service_healthy
+    networks:
+      - joo-coin
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        sleep 5 &&
+        echo 'Running migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting server...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    restart: unless-stopped
 
 volumes:
   db-data:

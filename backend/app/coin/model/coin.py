@@ -4,7 +4,7 @@ Coin 엔티티
 
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, String
+from sqlalchemy import BigInteger, Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.common.model.base import Base
@@ -20,6 +20,7 @@ class Coin(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # 관계 설정
     trades = relationship("Trade", back_populates="coin")

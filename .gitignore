@@ -13,3 +13,7 @@ wheels/
 
 **/.claude/**
 **CLAUDE.md**
+GEMINI.md
+.gemini
+CLAUDE.md
+.claude

@@ -19,4 +19,23 @@ dependencies = [
     "sqlalchemy>=2.0.44",
     "uv>=0.9.11",
     "uvicorn>=0.38.0",
+    "apscheduler>=3.10.0",
+    "ruff>=0.14.6",
 ]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.14.0",
+    "pytest-cov>=5.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+pythonpath = ["."]
