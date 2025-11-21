@@ -20,4 +20,10 @@ dependencies = [
     "uv>=0.9.11",
     "uvicorn>=0.38.0",
     "apscheduler>=3.10.0",
+    "ruff>=0.14.6",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
 ]

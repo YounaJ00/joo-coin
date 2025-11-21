@@ -73,6 +73,34 @@ class UpbitClient:
     def buy(self, coin_name: str, amount: float) -> None:
         self.upbit.buy_market_order(coin_name, amount)
 
+    def sell(self, coin_name: str, amount: float) -> None:
+        """
+        코인 시장가 매도를 실행합니다.
+
+        @param coin_name: 티커 (예: "KRW-BTC")
+        @param amount: 매도할 코인 수량
+        """
+        self.upbit.sell_market_order(coin_name, amount)
+
+    def get_coin_balance(self, coin_name: str) -> float:
+        """
+        특정 코인의 보유량을 조회합니다.
+
+        @param coin_name: 티커 (예: "KRW-BTC")
+        @return: 보유 코인 수량 (없으면 0.0)
+        """
+        balance = self.upbit.get_balance(coin_name)
+        return balance if balance is not None else 0.0
+
+    def get_krw_balance(self) -> float:
+        """
+        KRW 잔고를 조회합니다.
+
+        @return: KRW 잔고 (없으면 0.0)
+        """
+        balance = self.upbit.get_balance("KRW")
+        return balance if balance is not None else 0.0
+
     def get_my_balance(self, coin_names: list[str]) -> MyBallanceResponse:
         krw = self.upbit.get_balance("KRW") or 0.0
         coin_balaces: List[CoinBalance] = []
