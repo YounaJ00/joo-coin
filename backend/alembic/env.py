@@ -13,13 +13,13 @@ from alembic import context
 # 프로젝트 루트를 sys.path에 추가
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.configs.config import settings
-from app.database.base import Base
+from app.ballance.model.balance import Balance  # noqa: F401
 
 # 모든 모델을 import하여 metadata에 등록
-from app.database.models.coin import Coin  # noqa: F401
-from app.database.models.trade import Trade  # noqa: F401
-from app.database.models.balance import Balance  # noqa: F401
+from app.coin.model.coin import Coin  # noqa: F401
+from app.common.model.base import Base
+from app.configs.config import settings
+from app.trade.model.trade import Trade  # noqa: F401
 
 config = context.config
 

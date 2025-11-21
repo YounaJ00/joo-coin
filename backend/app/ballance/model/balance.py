@@ -8,7 +8,7 @@ from decimal import Decimal
 from sqlalchemy import BigInteger, DateTime, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.database.base import Base
+from app.common.model.base import Base
 
 
 class Balance(Base):

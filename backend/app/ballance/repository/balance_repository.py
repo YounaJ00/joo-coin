@@ -7,8 +7,8 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models.balance import Balance
-from app.database.repositories.base_repository import BaseRepository
+from app.ballance.model.balance import Balance
+from app.common.repository.base_repository import BaseRepository
 
 
 class BalanceRepository(BaseRepository[Balance]):
