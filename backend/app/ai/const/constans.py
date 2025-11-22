@@ -151,4 +151,4 @@ Respond in JSON format with the following structure:
 }
 ```
 """
-OPEN_AI_MODEL = "gpt-4.1-nano"
+OPEN_AI_MODEL = "gpt-5-nano"
