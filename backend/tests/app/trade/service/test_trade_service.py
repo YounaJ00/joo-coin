@@ -23,11 +23,12 @@ class TestExecute:
     """execute() 메서드 테스트"""
 
     async def test_execute_no_active_coins(
-        self, trade_service, mock_coin_service, mock_trade_repository
+        self, trade_service, mock_coin_service, mock_trade_repository, mock_upbit_client, mock_balance_repository
     ):
         """활성 코인이 없는 경우 NO_ACTION 상태로 기록"""
         # Given: 활성 코인이 없음
         mock_coin_service.get_all_active.return_value = []
+        mock_upbit_client.get_krw_balance.return_value = 100000
 
         mock_trade = Trade(
             coin_id=None,
@@ -56,22 +57,29 @@ class TestExecute:
         mock_coin_service,
         mock_upbit_client,
         mock_trade_repository,
+        mock_balance_repository,
+        mock_ai_client,
         sample_coin,
+        sample_ai_result_buy,
     ):
-        """KRW 잔고가 0인 경우 NO_ACTION 상태로 기록"""
-        # Given: 활성 코인은 있지만 KRW 잔고가 0
+        """KRW 잔고가 0인 경우 AI가 BUY 결정해도 NO_ACTION 상태로 기록"""
+        # Given: 활성 코인은 있지만 KRW 잔고가 0, AI는 BUY 결정
         mock_coin_service.get_all_active.return_value = [sample_coin]
         mock_upbit_client.get_krw_balance.return_value = 0
+        mock_upbit_client.get_coin_balance.return_value = 0
+        mock_upbit_client.get_ohlcv_raw.return_value = MagicMock()
+        mock_upbit_client.get_current_price.return_value = 50000000
+        mock_ai_client.get_bitcoin_trading_decision.return_value = sample_ai_result_buy
 
         mock_trade = Trade(
-            coin_id=None,
-            trade_type=None,
-            price=Decimal("0"),
+            coin_id=sample_coin.id,
+            trade_type=TradeType.BUY.value,
+            price=Decimal("50000000"),
             amount=Decimal("0"),
-            risk_level=RiskLevel.NONE.value,
+            risk_level=sample_ai_result_buy.risk_level.value,
             status=TradeStatus.NO_ACTION,
-            ai_reason=None,
-            execution_reason="KRW 잔고가 없습니다. 매수 불가 (잔고: 0원)",
+            ai_reason=sample_ai_result_buy.reason,
+            execution_reason="KRW 잔고가 5000원 미만입니다. 매수 불가 (가용 금액: 0원)",
         )
         mock_trade_repository.create.return_value = mock_trade
 
@@ -81,7 +89,7 @@ class TestExecute:
         # Then: NO_ACTION 거래 기록 생성
         assert len(result) == 1
         assert result[0].status == TradeStatus.NO_ACTION
-        assert "KRW 잔고가 없습니다" in result[0].execution_reason
+        assert "매수 불가" in result[0].execution_reason
         mock_trade_repository.create.assert_called_once()
 
     async def test_execute_success_with_buy(
