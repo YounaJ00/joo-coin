@@ -21,7 +21,12 @@ async def execute_trades(session: AsyncSession = Depends(get_session)) -> None:
     await trade_service.execute()
 
 
-@trade_router.get("/transactions")
+@trade_router.get(
+    "/transactions",
+    summary="내 거래 내역 조회",
+    description="내 거래 내역을 최신순으로 페이지네이션하여 반환합니다.",
+    response_model=TransactionsResponse,
+)
 async def get_transactions(
     cursor: Optional[int] = Query(
         None,

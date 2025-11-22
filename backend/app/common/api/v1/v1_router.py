@@ -6,6 +6,7 @@ API v1 라우터
 
 from fastapi import APIRouter
 
+from app.ballance.controller.balance_controller import balance_router
 from app.coin.controller.my_coin_controller import coin_router
 from app.trade.controller.trade_controller import trade_router
 from app.upbit.controller.upbit_controller import upbit_router
@@ -17,3 +18,4 @@ v1_router = APIRouter(prefix="/api/v1")
 v1_router.include_router(coin_router)
 v1_router.include_router(upbit_router)
 v1_router.include_router(trade_router)
+v1_router.include_router(balance_router)
