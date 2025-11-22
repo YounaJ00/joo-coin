@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# Joo Coin Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite 기반의 암호화폐 거래소 프론트엔드 애플리케이션입니다.
 
-Currently, two official plugins are available:
+## 기술 스택
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - UI 라이브러리
+- **TypeScript** - 타입 안정성
+- **Vite** - 빌드 도구
+- **TailwindCSS** - 스타일링
+- **shadcn/ui** - UI 컴포넌트
+- **Recharts** - 차트 라이브러리
+- **Axios** - HTTP 클라이언트
 
-## React Compiler
+## 주요 기능
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. 코인 관리
 
-## Expanding the ESLint configuration
+[x] 내 거래 코인 목록 조회
+[x] 코인 추가/삭제
+[x] 코인 검색
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 2. 차트 조회
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+[x] 선택한 코인의 OHLCV 데이터 시각화
+[x] 캔들스틱 차트 및 라인 차트 전환
+[x] 거래량 차트
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 3. 거래 내역
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+[x] 거래 내역 조회 (페이지네이션)
+[x] 즉시 거래 실행
+[x] 거래 상태 및 상세 정보 표시
+
+## 프로젝트 구조
+
+```
+src/
+├── components/          # React 컴포넌트
+│   ├── ui/             # shadcn/ui 컴포넌트
+│   ├── CoinList.tsx   # 코인 목록 컴포넌트
+│   ├── CoinChart.tsx  # 차트 컴포넌트
+│   ├── TransactionHistory.tsx  # 거래 내역 컴포넌트
+│   └── Toaster.tsx    # 토스트 알림 컴포넌트
+├── contexts/          # React Context
+│   └── ToastContext.tsx  # 토스트 컨텍스트
+├── lib/               # 유틸리티 및 API
+│   ├── api.ts         # API 클라이언트
+│   └── utils.ts      # 유틸리티 함수
+├── hooks/             # 커스텀 훅
+│   └── use-toast.ts   # 토스트 훅 (재export)
+├── App.tsx            # 메인 앱 컴포넌트
+└── main.tsx           # 진입점
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
