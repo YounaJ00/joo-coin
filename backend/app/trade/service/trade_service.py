@@ -48,6 +48,9 @@ class TradeService:
 
         # 1. 활성화된 모든 코인 조회
         active_coins = await self.coin_service.get_all_active()
+        
+        # 2. 거래 전 잔고 기록
+        await self._record_balance()
 
         if not active_coins:
             reason = "거래 가능한 활성화된 코인이 없습니다."
@@ -67,28 +70,10 @@ class TradeService:
             executed_trades.append(no_action_trade)
             return executed_trades
 
-        # 2. 현재 KRW 잔고 조회
+        # 3. 현재 KRW 잔고 조회
         krw_balance = self.upbit_client.get_krw_balance()
 
-        if krw_balance == 0:
-            reason = f"KRW 잔고가 없습니다. 매수 불가 (잔고: {krw_balance:,.0f}원)"
-
-            # NO_ACTION 상태로 기록
-            trade = Trade(
-                coin_id=None,
-                trade_type=None,
-                price=Decimal("0"),
-                amount=Decimal("0"),
-                risk_level=RiskLevel.NONE.value,
-                status=TradeStatus.NO_ACTION,
-                ai_reason=None,
-                execution_reason=reason,
-            )
-            no_action_trade = await self.trade_repository.create(trade)
-            executed_trades.append(no_action_trade)
-            return executed_trades
-
-        # 3. 각 코인에 대해 AI 분석 및 거래 실행
+        # 4. 각 코인에 대해 AI 분석 및 거래 실행
         for coin in active_coins:
             try:
                 coin_trade: Optional[Trade] = await self._process_coin_trade(
@@ -112,9 +97,6 @@ class TradeService:
                     f"코인 {coin.name} 거래 처리 중 오류 발생: {str(e)}\ntraceback: {traceback.format_exc()}"
                 )
                 continue
-
-        # 4. 거래 후 최종 잔고 기록
-        await self._record_balance()
 
         return executed_trades
 
