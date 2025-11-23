@@ -1,11 +1,10 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.common.model.base import get_session
 from app.trade.dto.transaction_response import TransactionsResponse
 from app.trade.service.trade_service import TradeService
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
 trade_router = APIRouter(prefix="/trade", tags=["Trade"])
 
@@ -31,6 +30,10 @@ async def get_transactions(
     cursor: Optional[int] = Query(
         None,
         description="이전 페이지의 마지막 거래 ID (첫 페이지 조회 시 생략)",
+    ),
+    trade_type: Optional[str] = Query(
+        None,
+        description="거래 유형 필터 (예: 'buy', 'sell', 'hold)",
     ),
     limit: int = Query(
         20,
@@ -60,4 +63,6 @@ async def get_transactions(
     - 거래 실행 사유 (execution_reason): 잔고, 현재 가격, 수수료, 실패 원인 등 상세 정보
     """
     trade_service = TradeService(session)
-    return await trade_service.get_transactions(cursor=cursor, limit=limit)
+    return await trade_service.get_transactions(
+        cursor=cursor, limit=limit, trade_type=trade_type
+    )
