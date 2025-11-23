@@ -4,12 +4,11 @@ Trade Repository
 
 from typing import List, Optional
 
+from app.common.repository.base_repository import BaseRepository
+from app.trade.model.trade import Trade
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-
-from app.common.repository.base_repository import BaseRepository
-from app.trade.model.trade import Trade
 
 
 class TradeRepository(BaseRepository[Trade]):
@@ -41,7 +40,7 @@ class TradeRepository(BaseRepository[Trade]):
         return list(result.scalars().all())
 
     async def get_all_with_coin_paginated(
-        self, cursor: Optional[int], limit: int
+        self, cursor: Optional[int], limit: int, trade_type: Optional[str]
     ) -> List[Trade]:
         """
         거래 내역을 커서 기반 페이지네이션으로 조회
@@ -55,6 +54,9 @@ class TradeRepository(BaseRepository[Trade]):
         # cursor가 있으면 해당 ID보다 작은 항목만 조회
         if cursor is not None:
             query = query.where(Trade.id < cursor)
+
+        if trade_type is not None:
+            query = query.where(Trade.trade_type == trade_type)
 
         # created_at 기준 내림차순 정렬
         query = query.order_by(Trade.created_at.desc()).limit(limit)

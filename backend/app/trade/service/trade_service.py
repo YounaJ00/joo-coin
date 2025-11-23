@@ -3,8 +3,6 @@ from decimal import Decimal
 from logging import Logger
 from typing import List, Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.ai.client.open_ai_client import OpenAIClient
 from app.ai.dto.ai_analysis_response import AiAnalysisResponse, Decision, RiskLevel
 from app.ballance.model.balance import Balance
@@ -19,6 +17,7 @@ from app.trade.model.enums import TradeStatus, TradeType
 from app.trade.model.trade import Trade
 from app.trade.repository.trade_repository import TradeRepository
 from app.upbit.client.upbit_client import UpbitClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = Logger(__name__)
 
@@ -48,7 +47,7 @@ class TradeService:
 
         # 1. 활성화된 모든 코인 조회
         active_coins = await self.coin_service.get_all_active()
-        
+
         # 2. 거래 전 잔고 기록
         await self._record_balance()
 
@@ -379,7 +378,10 @@ class TradeService:
         await self.balance_repository.create(balance)
 
     async def get_transactions(
-        self, cursor: Optional[int] = None, limit: int = 20
+        self,
+        cursor: Optional[int] = None,
+        limit: int = 20,
+        trade_type: Optional[str] = None,
     ) -> TransactionsResponse:
         """
         거래 내역을 커서 기반 페이지네이션으로 조회
@@ -390,7 +392,7 @@ class TradeService:
         """
         # limit + 1개를 조회하여 다음 페이지 존재 여부 확인
         trades = await self.trade_repository.get_all_with_coin_paginated(
-            cursor=cursor, limit=limit + 1
+            cursor=cursor, limit=limit + 1, trade_type=trade_type
         )
 
         # 다음 페이지 존재 여부 판단
