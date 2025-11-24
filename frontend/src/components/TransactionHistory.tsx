@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Play } from "lucide-react";
+import { Info, Loader2, Play } from "lucide-react";
 import { useToast } from "@/contexts/ToastContext";
 
 export function TransactionHistory() {
@@ -104,23 +104,35 @@ export function TransactionHistory() {
     return value.toFixed(8);
   };
 
-  const getAiAction = (reason: string | null): "buy" | "sell" | "hold" => {
+  const getAiAction = (
+    type: string | null,
+    reason: string | null
+  ): "buy" | "sell" | "hold" => {
+    // type 필드 우선 사용
+    if (type === "buy") return "buy";
+    if (type === "sell") return "sell";
+    if (type === "hold") return "hold";
+
+    // type이 없으면 reason에서 추출
     if (!reason) return "hold";
     const lower = reason.toLowerCase();
-    if (lower.includes("sell")) return "sell";
-    if (lower.includes("buy")) return "buy";
+    if (lower.includes("sell") || lower.includes("매도")) return "sell";
+    if (lower.includes("buy") || lower.includes("매수")) return "buy";
     return "hold";
   };
 
   const getAiActionColor = (action: "buy" | "sell" | "hold") => {
-    if (action === "buy") return "text-blue-500";
-    if (action === "sell") return "text-red-500";
-    return "text-muted-foreground";
+    if (action === "buy") return "bg-blue-100 border-blue-400 text-blue-700 hover:bg-blue-200";
+    if (action === "sell") return "bg-red-100 border-red-400 text-red-700 hover:bg-red-200";
+    return "border-yellow-400 text-yellow-700 hover:bg-yellow-50";
   };
 
-  const handleReasonClick = (reason: string | null) => {
+  const handleReasonClick = (
+    type: string | null,
+    reason: string | null
+  ) => {
     if (!reason) return;
-    const action = getAiAction(reason);
+    const action = getAiAction(type, reason);
     setSelectedReason({ action, detail: reason });
   };
 
@@ -160,24 +172,21 @@ export function TransactionHistory() {
                 <TableHeader className="sticky top-0 bg-card z-10">
                   <TableRow>
                     <TableHead className="text-xs">날짜</TableHead>
-                    <TableHead className="text-xs">코인 ID</TableHead>
+                    <TableHead className="text-xs">코인명</TableHead>
                     <TableHead className="text-xs">거래 종류</TableHead>
                     <TableHead className="text-xs">수량</TableHead>
                     <TableHead className="text-xs">가격</TableHead>
-                    <TableHead className="text-xs">총액</TableHead>
                     <TableHead className="text-xs">AI 의견</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map((transaction) => {
-                    const totalAmount = transaction.price * transaction.amount;
-                    return (
+                  {transactions.map((transaction) => (
                       <TableRow key={transaction.id}>
                         <TableCell className="text-xs py-2">
                           {transaction.timestamp.split(" ")[0]}
                         </TableCell>
                         <TableCell className="font-medium text-xs py-2">
-                          {transaction.coin_id || "-"}
+                          {transaction.coin_name || "-"}
                         </TableCell>
                         <TableCell
                           className={`text-xs py-2 ${getTypeColor(
@@ -188,6 +197,8 @@ export function TransactionHistory() {
                             ? "매수"
                             : transaction.type === "sell"
                             ? "매도"
+                            : transaction.type === "hold"
+                            ? "홀드"
                             : "-"}
                         </TableCell>
                         <TableCell className="text-xs py-2">
@@ -196,30 +207,36 @@ export function TransactionHistory() {
                         <TableCell className="text-xs py-2">
                           {formatPrice(transaction.price)}
                         </TableCell>
-                        <TableCell className="font-semibold text-xs py-2">
-                          {formatPrice(totalAmount)}
-                        </TableCell>
                         <TableCell className="text-xs py-2">
-                          {transaction.ai_reason ? (
+                          {(transaction.ai_reason || transaction.execution_reason) ? (
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              className={`h-6 px-2 capitalize ${getAiActionColor(
-                                getAiAction(transaction.ai_reason)
+                              className={`h-6 px-2 capitalize gap-1 hover:underline ${getAiActionColor(
+                                getAiAction(
+                                  transaction.type,
+                                  transaction.ai_reason || transaction.execution_reason
+                                )
                               )}`}
                               onClick={() =>
-                                handleReasonClick(transaction.ai_reason)
+                                handleReasonClick(
+                                  transaction.type,
+                                  transaction.ai_reason || transaction.execution_reason
+                                )
                               }
                             >
-                              {getAiAction(transaction.ai_reason)}
+                              {getAiAction(
+                                transaction.type,
+                                transaction.ai_reason || transaction.execution_reason
+                              )}
+                              <Info className="h-3 w-3" />
                             </Button>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
+                  ))}
                 </TableBody>
               </Table>
             </div>
