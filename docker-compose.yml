@@ -9,7 +9,7 @@ services:
       - "3306:3306"
     volumes:
       - db-data:/var/lib/mysql
-      # - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - joo-coin
     healthcheck:
@@ -46,6 +46,21 @@ services:
         gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000 --timeout 120 --graceful-timeout 30
       "
     restart: unless-stopped
+
+  joo-coin-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: joo-coin-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - joo-coin-backend
+    networks:
+      - joo-coin
 
 volumes:
   db-data:
