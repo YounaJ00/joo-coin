@@ -26,8 +26,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await conn.run_sync(lambda _: None)  # 연결 테스트
 
     # 스케줄러 시작
-    scheduler.add_job(trade_execution_job, "interval", seconds=30)
-    scheduler.start()
+    # scheduler.add_job(trade_execution_job, "interval", seconds=30)
+    # scheduler.start()
 
     yield
 
