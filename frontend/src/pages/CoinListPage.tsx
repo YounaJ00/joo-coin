@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   coinApi,
@@ -11,13 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -25,16 +18,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { ArrowLeft } from "lucide-react";
+import { CoinSelector } from "@/components/CoinSelector";
+import { MyCoinList } from "@/components/MyCoinList";
 import {
   LineChart,
   Line,
@@ -47,34 +33,83 @@ import {
 import { useToast } from "@/contexts/ToastContext";
 import { Loader2 } from "lucide-react";
 
-const AVAILABLE_COINS = [
-  "KRW-BTC",
-  "KRW-ETH",
-  "KRW-FLUID",
-  "KRW-BCH",
-  "KRW-DOGE",
-  "KRW-MMT",
-];
-
 export function CoinListPage() {
   const navigate = useNavigate();
   const [myCoins, setMyCoins] = useState<Coin[]>([]);
   const [selectedCoin, setSelectedCoin] = useState<string | null>(null);
   const [coinData, setCoinData] = useState<OhlcvItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCoinToAdd, setSelectedCoinToAdd] = useState<string>("");
-  const [isAddingCoin, setIsAddingCoin] = useState(false);
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [hasNext, setHasNext] = useState(false);
   const { toast } = useToast();
 
+  const fetchMyCoins = useCallback(async () => {
+    try {
+      const response = await coinApi.getMyCoins();
+      setMyCoins(response.items);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "오류",
+        description: "코인 목록을 불러오는데 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  const fetchTransactions = useCallback(
+    async (cursor?: number) => {
+      setIsLoadingTransactions(true);
+      try {
+        const response = await tradeApi.getTransactions(cursor, 20);
+        if (cursor) {
+          setTransactions((prev) => [...prev, ...response.items]);
+        } else {
+          setTransactions(response.items);
+        }
+        setNextCursor(response.next_cursor);
+        setHasNext(response.has_next);
+      } catch (error) {
+        console.error(error);
+        toast({
+          title: "오류",
+          description: "거래 내역을 불러오는데 실패했습니다.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingTransactions(false);
+      }
+    },
+    [toast]
+  );
+
   useEffect(() => {
     fetchMyCoins();
     fetchTransactions();
-  }, []);
+  }, [fetchMyCoins, fetchTransactions]);
+
+  const fetchCoinData = useCallback(
+    async (coinName: string) => {
+      setIsLoading(true);
+      try {
+        const response = await upbitApi.getOhlcv(coinName);
+        setCoinData(response.items);
+      } catch (error) {
+        console.error(error);
+        toast({
+          title: "오류",
+          description: "코인 데이터를 불러오는데 실패했습니다.",
+          variant: "destructive",
+        });
+        setCoinData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toast]
+  );
 
   useEffect(() => {
     if (selectedCoin) {
@@ -82,122 +117,7 @@ export function CoinListPage() {
     } else {
       setCoinData([]);
     }
-  }, [selectedCoin]);
-
-  const fetchMyCoins = async () => {
-    try {
-      const response = await coinApi.getMyCoins();
-      setMyCoins(response.items);
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "코인 목록을 불러오는데 실패했습니다.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchCoinData = async (coinName: string) => {
-    setIsLoading(true);
-    try {
-      const response = await upbitApi.getOhlcv(coinName);
-      setCoinData(response.items);
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "코인 데이터를 불러오는데 실패했습니다.",
-        variant: "destructive",
-      });
-      setCoinData([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAddCoin = async () => {
-    if (!selectedCoinToAdd) {
-      toast({
-        title: "오류",
-        description: "코인을 선택해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // 이미 추가된 코인인지 확인
-    if (myCoins.some((coin) => coin.name === selectedCoinToAdd)) {
-      toast({
-        title: "오류",
-        description: "이미 추가된 코인입니다.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsAddingCoin(true);
-    try {
-      await coinApi.createCoin({ name: selectedCoinToAdd });
-      setSelectedCoinToAdd("");
-      setIsDialogOpen(false);
-      await fetchMyCoins();
-      toast({
-        title: "성공",
-        description: "코인이 추가되었습니다.",
-      });
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "코인 추가에 실패했습니다.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAddingCoin(false);
-    }
-  };
-
-  const handleDeleteCoin = async (coinId: number) => {
-    if (!confirm("정말 이 코인을 삭제하시겠습니까?")) return;
-
-    try {
-      await coinApi.deleteCoin(coinId);
-      await fetchMyCoins();
-      if (myCoins.find((c) => c.id === coinId)?.name === selectedCoin) {
-        setSelectedCoin(null);
-      }
-      toast({
-        title: "성공",
-        description: "코인이 삭제되었습니다.",
-      });
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "코인 삭제에 실패했습니다.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchTransactions = async (cursor?: number) => {
-    setIsLoadingTransactions(true);
-    try {
-      const response = await tradeApi.getTransactions(cursor, 20);
-      if (cursor) {
-        setTransactions((prev) => [...prev, ...response.items]);
-      } else {
-        setTransactions(response.items);
-      }
-      setNextCursor(response.next_cursor);
-      setHasNext(response.has_next);
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "거래 내역을 불러오는데 실패했습니다.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingTransactions(false);
-    }
-  };
+  }, [selectedCoin, fetchCoinData]);
 
   const getTypeColor = (type: string | null) => {
     if (type === "buy") return "text-blue-600";
@@ -257,109 +177,20 @@ export function CoinListPage() {
           {/* 왼쪽 화면 */}
           <div className="flex flex-col gap-4 h-full">
             {/* 코인 선택 바 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>거래 가능한 코인</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {AVAILABLE_COINS.map((coin) => (
-                    <Button
-                      key={coin}
-                      variant={selectedCoin === coin ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedCoin(coin)}
-                    >
-                      {coin}
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <CoinSelector
+              selectedCoin={selectedCoin}
+              onCoinSelect={setSelectedCoin}
+            />
 
             {/* 거래 중인 코인 목록 */}
-            <Card className="flex-1">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>거래 중인 코인 목록</CardTitle>
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>코인 추가</DialogTitle>
-                        <DialogDescription>
-                          거래 가능한 코인 목록에서 선택하세요.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="py-4">
-                        <Select
-                          value={selectedCoinToAdd}
-                          onValueChange={setSelectedCoinToAdd}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="코인을 선택하세요" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {AVAILABLE_COINS.filter(
-                              (coin) =>
-                                !myCoins.some((myCoin) => myCoin.name === coin)
-                            ).map((coin) => (
-                              <SelectItem key={coin} value={coin}>
-                                {coin}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          onClick={handleAddCoin}
-                          disabled={isAddingCoin || !selectedCoinToAdd}
-                        >
-                          추가
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto p-0">
-                <div className="divide-y">
-                  {myCoins.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground">
-                      거래 중인 코인이 없습니다. 코인을 추가해주세요.
-                    </div>
-                  ) : (
-                    myCoins.map((coin) => (
-                      <div
-                        key={coin.id}
-                        className={`flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors ${
-                          selectedCoin === coin.name ? "bg-muted" : ""
-                        }`}
-                        onClick={() => setSelectedCoin(coin.name)}
-                      >
-                        <span className="font-medium">{coin.name}</span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteCoin(coin.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex-1 min-h-0">
+              <MyCoinList
+                myCoins={myCoins}
+                selectedCoin={selectedCoin}
+                onCoinSelect={setSelectedCoin}
+                onCoinsChange={fetchMyCoins}
+              />
+            </div>
           </div>
 
           {/* 중앙: 선택된 코인 정보 */}
@@ -472,7 +303,7 @@ export function CoinListPage() {
           {/* 오른쪽: 거래 내역 */}
           <div className="h-full">
             <Card className="h-full flex flex-col overflow-hidden">
-              <CardHeader className="flex-shrink-0 pb-3">
+              <CardHeader className="shrink-0 pb-3">
                 <CardTitle className="text-lg">거래 내역</CardTitle>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto p-0 min-h-0">

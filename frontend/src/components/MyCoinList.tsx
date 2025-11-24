@@ -20,20 +20,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/contexts/ToastContext";
-
-const AVAILABLE_COINS = [
-  "KRW-BTC",
-  "KRW-ETH",
-  "KRW-FLUID",
-  "KRW-BCH",
-  "KRW-DOGE",
-  "KRW-MMT",
-];
+import { AVAILABLE_COINS } from "@/constants/coins";
 
 interface MyCoinListProps {
   myCoins: Coin[];
   selectedCoin: string | null;
-  onCoinSelect: (coin: string) => void;
+  onCoinSelect: (coin: string | null) => void;
   onCoinsChange: () => void;
 }
 
@@ -78,6 +70,7 @@ export function MyCoinList({
         description: "코인이 추가되었습니다.",
       });
     } catch (error) {
+      console.error(error);
       toast({
         title: "오류",
         description: "코인 추가에 실패했습니다.",
@@ -92,13 +85,18 @@ export function MyCoinList({
     if (!confirm("정말 이 코인을 삭제하시겠습니까?")) return;
 
     try {
+      const targetCoin = myCoins.find((c) => c.id === coinId);
       await coinApi.deleteCoin(coinId);
       onCoinsChange();
+      if (targetCoin?.name === selectedCoin) {
+        onCoinSelect(null);
+      }
       toast({
         title: "성공",
         description: "코인이 삭제되었습니다.",
       });
     } catch (error) {
+      console.error(error);
       toast({
         title: "오류",
         description: "코인 삭제에 실패했습니다.",
@@ -135,8 +133,7 @@ export function MyCoinList({
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABLE_COINS.filter(
-                      (coin) =>
-                        !myCoins.some((myCoin) => myCoin.name === coin)
+                      (coin) => !myCoins.some((myCoin) => myCoin.name === coin)
                     ).map((coin) => (
                       <SelectItem key={coin} value={coin}>
                         {coin}
@@ -192,4 +189,3 @@ export function MyCoinList({
     </Card>
   );
 }
-

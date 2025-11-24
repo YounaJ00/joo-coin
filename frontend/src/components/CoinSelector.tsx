@@ -1,21 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const AVAILABLE_COINS = [
-  "KRW-BTC",
-  "KRW-ETH",
-  "KRW-FLUID",
-  "KRW-BCH",
-  "KRW-DOGE",
-  "KRW-MMT",
-];
+import { AVAILABLE_COINS } from "@/constants/coins";
 
 interface CoinSelectorProps {
   selectedCoin: string | null;
   onCoinSelect: (coin: string) => void;
 }
 
-export function CoinSelector({ selectedCoin, onCoinSelect }: CoinSelectorProps) {
+export function CoinSelector({
+  selectedCoin,
+  onCoinSelect,
+}: CoinSelectorProps) {
   return (
     <Card className="shrink-0">
       <CardHeader>
@@ -38,4 +33,3 @@ export function CoinSelector({ selectedCoin, onCoinSelect }: CoinSelectorProps) 
     </Card>
   );
 }
-
